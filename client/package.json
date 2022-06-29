@@ -1,13 +1,7 @@
 {
   "name": "peekingduck-language-client",
   "description": "VSCode part of a language server",
-  "author": "aimakerspace",
   "license": "Apache-2.0",
-  "publisher": "aimakerspace",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com"
-  },
   "engines": {
     "vscode": "^1.63.0"
   },
