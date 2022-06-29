@@ -1,0 +1,4 @@
+input: ["in_1", "in_2"]
+output: ["out_1", "out_2"]
+
+model_conf_1: 1

@@ -1,0 +1,136 @@
+{
+  "name": "vscode-peekingduck",
+  "displayName": "PeekingDuck",
+  "description": "PeekingDuck pipeline language support for VS Code.",
+  "publisher": "aisingapore",
+  "license": "Apache-2.0",
+  "version": "0.0.2",
+  "engines": {
+    "vscode": "^1.67.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aimakerspace/PeekingDuck"
+  },
+  "activationEvents": [
+    "onLanguage:peekingduck"
+  ],
+  "icon": "assets/logo.png",
+  "main": "./dist/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "PeekingDuck",
+      "properties": {
+        "peekingduck.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "peekingduck.path.package": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the PeekingDuck package, you can use `python -c 'import peekingduck; print(peekingduck.__path__)'` to get this path."
+        },
+        "peekingduck.path.customNodes": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "Path to the PeekingDuck custom nodes directory."
+        },
+        "peekingduck.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "peekingduck",
+        "aliases": [
+          "PeekingDuck Pipeline",
+          "peekingduck"
+        ],
+        "configuration": "./language-configuration.json",
+        "filenamePatterns": [
+          "**/*_pipeline.yml",
+          "**/*-pipeline.yml",
+          "**/pipeline_*.yml",
+          "**/pipeline-*.yml",
+          "**/*_peekingduck.yml",
+          "**/*-peekingduck.yml",
+          "**/peekingduck_*.yml",
+          "**/peekingduck-*.yml",
+          "**/*_pkd.yml",
+          "**/*-pkd.yml",
+          "**/pkd_*.yml",
+          "**/pkd-*.yml"
+        ],
+        "filenames": [
+          "pipeline_config.yml",
+          "peekingduck.yml",
+          "pkd.yml"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "peekingduck",
+        "scopeName": "source.peekingduck",
+        "path": "./syntaxes/peekingduck.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "npm run clean && npm run lint && npm run vscode:prepublish",
+    "clean": "rimraf dist && rimraf client/out && rimraf server/out",
+    "compile": "tsc -b",
+    "compile:webpack": "npm run compile && webpack --mode none",
+    "coverage:server": "nyc --reporter=text mocha --require ts-node/register --require source-map-support/register --timeout 5000 ./server/test/*.test.ts",
+    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+    "test": "sh ./scripts/e2e.sh",
+    "test:server": "mocha --require ts-node/register --require mocha-suppress-logs --timeout 5000 ./server/test/*.test.ts",
+    "vscode:prepublish": "npm run compile && webpack --mode production",
+    "watch": "tsc -b -w"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.0.0",
+    "@types/sinon": "^10.0.11",
+    "@types/sinon-chai": "^3.2.8",
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
+    "@typescript-eslint/parser": "^5.29.0",
+    "chai": "^4.3.6",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "js-yaml": "^4.1.0",
+    "mocha": "^10.0.0",
+    "mocha-suppress-logs": "^0.3.1",
+    "nyc": "^15.1.0",
+    "sinon": "^14.0.0",
+    "sinon-chai": "^3.7.0",
+    "source-map-support": "^0.5.21",
+    "ts-loader": "^9.3.1",
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0"
+  }
+}

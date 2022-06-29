@@ -1,0 +1,5 @@
+nodes:
+  - model.yolo:
+      detect: ["car"]
+    model.posenet:
+      score_threshold: 0.1

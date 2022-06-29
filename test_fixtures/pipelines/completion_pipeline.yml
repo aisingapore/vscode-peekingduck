@@ -1,0 +1,25 @@
+nodes:
+  # custom folder and built-in node type
+  - 
+  # built-in node name
+  - dabble.
+  # custom node type
+  - custom_nodes.
+  # custom node name
+  - custom_nodes.model.
+  # built-in configs
+  - dabble.fps:
+  # custom configs
+  - custom_nodes.model.my_model_node:
+  # invalid built-in node name
+  - augment.
+  # invalid custom node type
+  - custom.
+  # invalid custom node name
+  - custom_nodes.input.
+  # invalid built-in configs
+  - augment.brightness:
+  # invalid custom configs
+  - custom_nodes.input.visual:
+  # invalid custom folder name
+  - custom.my_dabble.

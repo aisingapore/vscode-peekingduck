@@ -1,0 +1,9 @@
+nodes:
+  - model.yolo:
+      model_type: v4
+      iou_threshold: 0.1
+      score_threshold: 0.3
+  - dabble.fps
+  - custom_nodes.my_dabble.my_dabble_node:
+      dabble_conf_1: 2
+  - custom_nodes.model.my_model_node

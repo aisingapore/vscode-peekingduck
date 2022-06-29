@@ -1,0 +1,14 @@
+nodes:
+  - input.visual
+  - model.yolo:
+      iou_threshold: 0.2
+      score_threshold: 0.1
+  - model.posenet:
+  - { dabble.statistics }:
+      key: val
+  - 1234:
+      key: val
+  - [draw.bbox, output.screen]
+  - 5678
+  - dabble.statistics:
+      [key]: val

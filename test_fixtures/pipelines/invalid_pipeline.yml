@@ -1,0 +1,4 @@
+nodes:
+    - input.visual
+    model.yolo:
+        score_threshold: 0.1

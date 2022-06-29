@@ -1,0 +1,37 @@
+nodes:
+  - augment.brightness # bad built-in type
+  - dabble.zone_count # bad built-in name
+  - augment.brightness: # bad built-in type
+      conf: val
+  - dabble.zone_count: # bad built-in name
+      conf: val
+  - dabble.fps:
+      log_freq: 20 # bad config
+      dampen_fps: true
+  - dabble.bbox_count: # missing config
+  - a.b.c.d # bad definition
+  - a.b.c.d: # bad definition
+      conf: val
+  - 1234 # not a node
+  - 1234: # not a node
+      conf: val
+  - { asdf } # bad definition
+  - { asdf }: # not a node
+      conf: val
+  - [asdf, qwer] # not a node
+  - [asdf, qwer]: # not a node
+      conf: val
+  - custom.model.yolo # bad custom folder
+  - custom_nodes.input.visual # bad custom type
+  - custom_nodes.my_dabble.bbox_count # bad custom name
+  - custom.model.yolo: # bad custom folder
+      conf: val
+  - custom_nodes.input.visual: # bad custom type
+      conf: val
+  - custom_nodes.my_dabble.zone_count: # bad custom name
+      conf: val
+  - custom_nodes.model.yolo:
+      iou_threshold: 0.1
+      detect_ids: [0] # bad config
+  - custom_nodes.model.my_model_node: # missing config
+  

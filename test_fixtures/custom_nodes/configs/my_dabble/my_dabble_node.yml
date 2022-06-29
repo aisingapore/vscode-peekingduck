@@ -1,0 +1,6 @@
+input: ["in_1", "in_2"]
+output: ["out_1", "out_2"]
+
+dabble_conf_1: 1
+dabble_conf_2: [1, 2, 3]
+dabble_conf_3: { dabble_sub_conf_1: 1, dabble_sub_conf_2: 2 }

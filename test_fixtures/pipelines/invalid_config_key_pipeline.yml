@@ -1,0 +1,4 @@
+nodes:
+  - model.yolo:
+      detect: ["car"]
+      { score_threshold }: 0.1

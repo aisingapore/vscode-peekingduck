@@ -1,0 +1,15 @@
+.nyc_output/
+.vscode/
+.vscode-test/
+client/
+node_modules/
+scripts/
+server/
+test_fixtures/
+.eslintrc.js
+.gitattributes
+.gitignore
+CONTRIBUTING.md
+tsconfig.json
+webpack.config.js
+**/**.vsix
