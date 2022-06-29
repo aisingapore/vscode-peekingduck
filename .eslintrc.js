@@ -17,7 +17,12 @@ module.exports = {
     "@typescript-eslint/no-non-null-assertion": 0,
     "@typescript-eslint/no-unused-vars": 0,
     "eol-last": ["error"],
-    "prettier/prettier": "error",
+    "prettier/prettier": [
+      "error",
+      {
+        endOfLine: "auto",
+      },
+    ],
     semi: [2, "always"],
   },
 };

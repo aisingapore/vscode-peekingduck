@@ -50,7 +50,10 @@ describe("PKD Pipeline Parser", () => {
         yaml.YAMLParseError,
         "Pipeline should only contain a single top level 'nodes' key"
       )
-      .with.deep.property("pos", [15, 22]);
+      .with.deep.property("pos", [
+        textDocument.offsetAt({ line: 2, character: 0 }),
+        textDocument.offsetAt({ line: 2, character: 7 }),
+      ]);
   });
 
   it("should throw for empty node list", () => {
@@ -74,7 +77,10 @@ describe("PKD Pipeline Parser", () => {
         yaml.YAMLParseError,
         "Each entry should only contain a single node."
       )
-      .with.deep.property("pos", [49, 62]);
+      .with.deep.property("pos", [
+        textDocument.offsetAt({ line: 3, character: 4 }),
+        textDocument.offsetAt({ line: 3, character: 17 }),
+      ]);
   });
 
   it("should throw for invalid config key", () => {
@@ -89,38 +95,51 @@ describe("PKD Pipeline Parser", () => {
   it("should parse valid pipeline file", () => {
     const textDocument = createTextDocument(files.valid);
     const parser = new PkdParser();
+    const rangeAt = (
+      startLine: number,
+      startCharacter: number,
+      endLine: number,
+      endCharacter: number
+    ) => {
+      return {
+        start: textDocument.offsetAt({
+          line: startLine,
+          character: startCharacter,
+        }),
+        end: textDocument.offsetAt({ line: endLine, character: endCharacter }),
+      };
+    };
 
     const nodes: NodeEntry[] = [
-      { nodeString: { value: "input.visual", range: { start: 11, end: 23 } } },
+      {
+        nodeString: { value: "input.visual", range: rangeAt(1, 4, 1, 16) },
+      },
       {
         nodeMap: {
-          nodeString: { value: "model.yolo", range: { start: 28, end: 38 } },
+          nodeString: { value: "model.yolo", range: rangeAt(2, 4, 2, 14) },
           nodeConfigs: [
-            { value: "iou_threshold", range: { start: 46, end: 59 } },
-            { value: "score_threshold", range: { start: 71, end: 86 } },
+            { value: "iou_threshold", range: rangeAt(3, 6, 3, 19) },
+            { value: "score_threshold", range: rangeAt(4, 6, 4, 21) },
           ],
         },
       },
       {
         nodeMap: {
-          nodeString: {
-            value: "model.posenet",
-            range: { start: 96, end: 109 },
-          },
+          nodeString: { value: "model.posenet", range: rangeAt(5, 4, 5, 17) },
           nodeConfigs: [],
         },
       },
-      { nonNode: { value: undefined, range: { start: 115, end: 136 } } },
-      { nonNode: { value: 1234, range: { start: 157, end: 161 } } },
-      { nonNode: { value: undefined, range: { start: 182, end: 208 } } },
-      { nonNode: { value: 5678, range: { start: 213, end: 217 } } },
+      { nonNode: { value: undefined, range: rangeAt(6, 4, 6, 25) } },
+      { nonNode: { value: 1234, range: rangeAt(8, 4, 8, 8) } },
+      { nonNode: { value: undefined, range: rangeAt(10, 4, 10, 30) } },
+      { nonNode: { value: 5678, range: rangeAt(11, 4, 11, 8) } },
       {
         nodeMap: {
           nodeString: {
             value: "dabble.statistics",
-            range: { start: 222, end: 239 },
+            range: rangeAt(12, 4, 12, 21),
           },
-          nodeConfigs: [{ value: undefined, range: { start: 247, end: 252 } }],
+          nodeConfigs: [{ value: undefined, range: rangeAt(13, 6, 13, 11) }],
         },
       },
     ];
