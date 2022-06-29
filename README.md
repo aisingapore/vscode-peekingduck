@@ -3,7 +3,7 @@
 Provides [PeekingDuck](https://github.com/aimakerspace/PeekingDuck) pipeline language support for [Visual Studio Code](https://code.visualstudio.com/).
 
 ## Features
-![demo](assets/demo.gif)
+![demo](https://raw.githubusercontent.com/aimakerspace/vscode-peekingduck/main/assets/demo.gif)
 
 1. Syntax highlighting
 1. Code validation
