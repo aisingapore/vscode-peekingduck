@@ -66,6 +66,7 @@
           "comments": false,
           "strings": true
         },
+        "editor.suggest.showWords": false,
         "editor.autoIndent": "keep"
       }
     },

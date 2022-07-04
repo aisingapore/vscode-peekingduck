@@ -214,8 +214,11 @@ async function testCompletion(
   )) as vscode.CompletionList;
   // The API somehow returns a "nodes" completion item which is missing when
   // manually testing the extension. We filter it out here.
+  // TODO: set up editor defaultConfigurations instead of filtering them here
   const actualItems = actualCompletionList.items.filter((item) => {
-    return item.label !== "nodes";
+    return (
+      item.label !== "nodes" && item.kind !== vscode.CompletionItemKind.Text
+    );
   });
 
   expect(actualItems.length).to.be.equal(expectedCompletionList.items.length);
