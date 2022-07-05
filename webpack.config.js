@@ -20,7 +20,6 @@
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 const path = require("path");
-const webpack = require("webpack");
 
 const config = {
   target: "node",
@@ -40,11 +39,15 @@ const config = {
   },
   devtool: "source-map",
   externals: {
-    vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+    // the vscode-module is created on-the-fly and must be excluded. Add other
+    // modules that cannot be webpack'ed,
+    // 📖 -> https://webpack.js.org/configuration/externals/
+    vscode: "commonjs vscode",
     prettier: "commonjs prettier",
   },
   resolve: {
-    // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
+    // support reading TypeScript and JavaScript files,
+    // 📖 -> https://github.com/TypeStrong/ts-loader
     extensions: [".ts", ".js"],
   },
   module: {
@@ -57,10 +60,6 @@ const config = {
             loader: "ts-loader",
           },
         ],
-      },
-      {
-        test: /node_modules[\\|/](vscode-json-languageservice)/,
-        use: { loader: "umd-compat-loader" },
       },
     ],
   },
