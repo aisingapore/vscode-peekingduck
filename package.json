@@ -97,7 +97,7 @@
   "scripts": {
     "build": "npm run clean && npm run lint && npm run vscode:prepublish",
     "clean": "rimraf dist && rimraf client/out && rimraf server/out",
-    "compile": "npm run compile && webpack --mode none",
+    "compile": "npm run compile:ts && webpack --mode none",
     "compile:ts": "tsc -b",
     "coverage:server": "nyc --reporter=text mocha --require ts-node/register --require source-map-support/register --timeout 5000 ./server/test/*.test.ts",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
