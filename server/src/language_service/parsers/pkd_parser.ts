@@ -16,6 +16,7 @@
 import * as yaml from "yaml";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { ParsedItem, Range } from "../pkd_types";
+import { integer } from "vscode-languageserver";
 
 /**
  * A parsed pipeline entry, can one of the following three types:
@@ -49,11 +50,13 @@ export class PkdParser {
    *
    * @param textDocument A TextDocument object containing the pipeline file to
    *                     be parsed.
+   * @param omitLine The line to be omitted. This is used when `parse()` is
+   *                 called via invoked completion. The
    * @returns A ParsedPipeline object with a `node` key pointing to a list of
    *          parsed NodeEntry's.
    */
-  parse(textDocument: TextDocument): ParsedPipeline {
-    const text = textDocument.getText();
+  parse(textDocument: TextDocument, omitLine = -1): ParsedPipeline {
+    const text = this.omitLineFromText(textDocument, omitLine);
     const doc = yaml.parseDocument(text, { prettyErrors: false });
 
     if (doc.errors.length) throw doc.errors[0];
@@ -82,6 +85,26 @@ export class PkdParser {
     }
 
     return { nodes: nodes };
+  }
+
+  parseNodeDefMap(
+    textDocument: TextDocument,
+    omitLine: number
+  ): Map<integer, NodeEntry> {
+    const nodeDefMap = new Map();
+    const pipeline = this.parse(textDocument, omitLine);
+    pipeline.nodes.forEach((entry: NodeEntry) => {
+      if (entry.nodeString !== undefined) {
+        const position = textDocument.positionAt(entry.nodeString.range.start);
+        nodeDefMap.set(position.line, entry.nodeString);
+      } else if (entry.nodeMap !== undefined) {
+        const position = textDocument.positionAt(
+          entry.nodeMap.nodeString.range.start
+        );
+        nodeDefMap.set(position.line, entry.nodeMap);
+      }
+    });
+    return nodeDefMap;
   }
 
   /**
@@ -127,6 +150,29 @@ export class PkdParser {
       );
     }
     return nodeSection.value.items;
+  }
+
+  /**
+   * Replace the specified `line` with white spaces (excluding the final new
+   * line).
+   *
+   * @param textDocument A TextDocument object containing the pipeline file to
+   *                     be parsed.
+   * @param line The line number to be omitted if any.
+   * @returns The document's text with the specified line replaced with white
+   *          spaces.
+   */
+  private omitLineFromText(textDocument: TextDocument, line: number): string {
+    let text = textDocument.getText();
+    if (line > -1) {
+      const start = textDocument.offsetAt({ line, character: 0 });
+      const end = textDocument.offsetAt({ line: line + 1, character: 0 }) - 1;
+      text =
+        text.substring(0, start) +
+        " ".repeat(end - start) +
+        text.substring(end);
+    }
+    return text;
   }
 }
 

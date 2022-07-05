@@ -18,6 +18,7 @@ import {
   CompletionItemKind,
   CompletionList,
   CompletionParams,
+  CompletionTriggerKind,
   InsertTextMode,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -25,6 +26,7 @@ import { LanguageSettings } from "../pkd_language_service";
 import { PkdSchemaService } from "./pkd_schema_service";
 import { guessIndentation } from "../utils/indentation_guesser";
 import { TextBuffer } from "../utils/text_buffer";
+import { PkdParser } from "../parsers/pkd_parser";
 
 export enum CompletionDataKind {
   BuiltInType = 0,
@@ -42,9 +44,12 @@ export class PkdCompletion {
     custom: boolean;
   };
   private schemaService: PkdSchemaService;
+  /** Pipeline parser, to parse pipeline files such as `pipeline_config.yml` */
+  private parser: PkdParser;
 
   constructor(schemaService: PkdSchemaService) {
     this.schemaService = schemaService;
+    this.parser = new PkdParser();
   }
 
   configure(settings: LanguageSettings): void {
@@ -194,7 +199,14 @@ export class PkdCompletion {
         }
       }
     }
-
+    if (
+      completionParams.context?.triggerKind === CompletionTriggerKind.Invoked
+    ) {
+      const nodeDefMap = this.parser.parseNodeDefMap(
+        textDocument,
+        completionParams.position.line
+      );
+    }
     return result;
   }
 
