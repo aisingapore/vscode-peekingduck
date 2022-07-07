@@ -101,7 +101,7 @@ export class PkdParser {
         const position = textDocument.positionAt(
           entry.nodeMap.nodeString.range.start
         );
-        nodeDefMap.set(position.line, entry.nodeMap);
+        nodeDefMap.set(position.line, entry);
       }
     });
     return nodeDefMap;

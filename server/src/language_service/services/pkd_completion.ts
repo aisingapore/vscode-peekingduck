@@ -28,7 +28,7 @@ import { guessIndentation } from "../utils/indentation_guesser";
 import { TextBuffer } from "../utils/text_buffer";
 import { PkdParser } from "../parsers/pkd_parser";
 
-export enum CompletionDataKind {
+export enum CompletionItemData {
   BuiltInType = 0,
   BuiltInNode,
   BuiltInConfig,
@@ -58,43 +58,26 @@ export class PkdCompletion {
 
   async doCompletion(
     textDocument: TextDocument,
-    completionParams: CompletionParams
+    params: CompletionParams
   ): Promise<CompletionList> {
     const result = CompletionList.create([], false);
     // Get completion for new node definition
-    if (completionParams.context?.triggerCharacter === " ") {
-      const precedingChar = this.getPrecedingChar(
-        textDocument,
-        completionParams
-      );
+    if (params.context?.triggerCharacter === " ") {
+      const precedingChar = this.getPrecedingChar(textDocument, params);
       // Early exit if not a new node entry
       if (precedingChar !== "-") return result;
       if (this.shouldComplete.builtIn) {
-        const schema = this.schemaService.schemaConfigs.builtIn.schema;
-        for (const key of schema.keys()) {
-          result.items.push({
-            label: key,
-            kind: CompletionItemKind.TypeParameter,
-            data: CompletionDataKind.BuiltInType,
-          });
-        }
+        const items = this.getNodeTypeCompletionItems("builtIn");
+        result.items.push(...items);
       }
       if (this.shouldComplete.custom) {
-        const customFolderName = this.schemaService.schemaConfigs.custom.name;
-        result.items.push({
-          label: customFolderName,
-          kind: CompletionItemKind.Module,
-          data: CompletionDataKind.CustomFolderName,
-        });
+        result.items.push(this.getFolderNameCompletionItem());
       }
       return result;
     }
     // Get completion for next part in the node definition
-    if (completionParams.context?.triggerCharacter === ".") {
-      const precedingText = this.getPrecedingText(
-        textDocument,
-        completionParams
-      );
+    if (params.context?.triggerCharacter === ".") {
+      const precedingText = this.getPrecedingText(textDocument, params);
       // Early exit if not a new node entry
       if (!precedingText.startsWith("-")) return result;
       const builtInSchema = this.schemaService.schemaConfigs.builtIn.schema;
@@ -108,44 +91,29 @@ export class PkdCompletion {
         if (folderName !== this.schemaService.schemaConfigs.custom.name) {
           return result;
         }
-        customSchema.get(nodeType)?.forEach((_value, key) => {
-          result.items.push({
-            label: key,
-            kind: CompletionItemKind.Class,
-            data: CompletionDataKind.CustomNode,
-          });
-        });
+        const items = this.getNodeNameCompletionItems("custom", nodeType);
+        result.items.push(...items);
       }
       if (nodeParts.length === 1) {
         const nodePart = nodeParts[0];
         if (this.shouldComplete.builtIn) {
-          builtInSchema.get(nodePart)?.forEach((_value, key) => {
-            result.items.push({
-              label: key,
-              kind: CompletionItemKind.Class,
-              data: CompletionDataKind.BuiltInNode,
-            });
-          });
+          const items = this.getNodeNameCompletionItems("builtIn", nodePart);
+          result.items.push(...items);
         }
         if (
           this.shouldComplete.custom &&
           nodePart === this.schemaService.schemaConfigs.custom.name
         ) {
-          for (const key of customSchema.keys()) {
-            result.items.push({
-              label: key,
-              kind: CompletionItemKind.TypeParameter,
-              data: CompletionDataKind.CustomType,
-            });
-          }
+          const items = this.getNodeTypeCompletionItems("custom");
+          result.items.push(...items);
         }
       }
     }
     // Get completion for node config keys
-    if (completionParams.context?.triggerCharacter === ":") {
+    if (params.context?.triggerCharacter === ":") {
       const precedingTextRaw = this.getPrecedingText(
         textDocument,
-        completionParams,
+        params,
         false
       );
       const precedingText = precedingTextRaw.trim();
@@ -166,71 +134,137 @@ export class PkdCompletion {
       const suffix = ":";
 
       if (this.shouldComplete.builtIn && nodeParts.length === 2) {
-        const schema = this.schemaService.schemaConfigs.builtIn.schema;
         const [nodeType, nodeName] = nodeParts;
-        const configs = schema.get(nodeType)?.get(nodeName)?.configs;
-        if (configs !== undefined) {
-          const completionText =
-            prefix + configs.join(suffix + prefix) + suffix;
-          result.items.push({
-            label: "Configuration options",
-            kind: CompletionItemKind.TypeParameter,
-            data: CompletionDataKind.BuiltInConfig,
-            insertTextMode: InsertTextMode.asIs,
-            insertText: completionText,
-          });
-        }
+        const [ok, item] = this.getNodeConfigSnippet(
+          "builtIn",
+          nodeType,
+          nodeName,
+          prefix,
+          suffix
+        );
+        if (ok) result.items.push(item);
       } else if (this.shouldComplete.custom && nodeParts.length === 3) {
-        const schema = this.schemaService.schemaConfigs.custom.schema;
         const [folderName, nodeType, nodeName] = nodeParts;
         if (folderName === this.schemaService.schemaConfigs.custom.name) {
-          const configs = schema.get(nodeType)?.get(nodeName)?.configs;
-          if (configs !== undefined) {
-            const completionText =
-              prefix + configs.join(suffix + prefix) + suffix;
-            result.items.push({
-              label: "Configuration options",
-              kind: CompletionItemKind.TypeParameter,
-              data: CompletionDataKind.CustomConfig,
-              insertTextMode: InsertTextMode.asIs,
-              insertText: completionText,
-            });
-          }
+          const [ok, item] = this.getNodeConfigSnippet(
+            "custom",
+            nodeType,
+            nodeName,
+            prefix,
+            suffix
+          );
+          if (ok) result.items.push(item);
         }
       }
     }
-    if (
-      completionParams.context?.triggerKind === CompletionTriggerKind.Invoked
-    ) {
-      const nodeDefMap = this.parser.parseNodeDefMap(
+    if (params.context?.triggerKind === CompletionTriggerKind.Invoked) {
+      const precedingTextRaw = this.getPrecedingText(
         textDocument,
-        completionParams.position.line
+        params,
+        false
       );
+      const precedingText = precedingTextRaw.trim();
+      if (precedingText.startsWith("-")) {
+        const nodeParts = precedingText.substring(1).trim().split(".");
+        console.log(nodeParts);
+        // Early exit if not a valid node definition
+        if (nodeParts.length > 3) return result;
+        if (nodeParts.length === 3 && this.shouldComplete.custom) {
+          const [folderName, nodeType, _nodeName] = nodeParts;
+          if (folderName !== this.schemaService.schemaConfigs.custom.name) {
+            return result;
+          }
+          const items = this.getNodeNameCompletionItems("custom", nodeType);
+          result.items.push(...items);
+        }
+        if (nodeParts.length === 2) {
+          const nodePart = nodeParts[0];
+          if (this.shouldComplete.builtIn) {
+            const items = this.getNodeNameCompletionItems("builtIn", nodePart);
+            result.items.push(...items);
+          }
+          if (
+            this.shouldComplete.custom &&
+            nodePart === this.schemaService.schemaConfigs.custom.name
+          ) {
+            const items = this.getNodeTypeCompletionItems("custom");
+            result.items.push(...items);
+          }
+        }
+        if (nodeParts.length === 1) {
+          if (this.shouldComplete.builtIn) {
+            const items = this.getNodeTypeCompletionItems("builtIn");
+            result.items.push(...items);
+          }
+          if (this.shouldComplete.custom) {
+            result.items.push(this.getFolderNameCompletionItem());
+          }
+        }
+      } else {
+        const nodeDefMap = this.parser.parseNodeDefMap(
+          textDocument,
+          params.position.line
+        );
+        // Find the closest node definition to the trigger line
+        let line = params.position.line;
+        while (line >= 0 && !nodeDefMap.has(line)) --line;
+        const node = nodeDefMap.get(line);
+
+        if (node?.nodeMap !== undefined) {
+          const nodeParts = node.nodeMap.nodeString.value.split(".");
+          const nodeConfigs = node.nodeMap.nodeConfigs.map(
+            ({ value }) => value
+          );
+          if (nodeParts.length == 2 && this.shouldComplete.builtIn) {
+            const [nodeType, nodeName] = nodeParts;
+            const items = this.getNodeConfigCompletionItems(
+              "builtIn",
+              nodeType,
+              nodeName,
+              nodeConfigs
+            );
+            result.items.push(...items);
+          }
+          if (nodeParts.length === 3 && this.shouldComplete.custom) {
+            const [folderName, nodeType, nodeName] = nodeParts;
+            if (folderName !== this.schemaService.schemaConfigs.custom.name) {
+              return result;
+            }
+            const items = this.getNodeConfigCompletionItems(
+              "custom",
+              nodeType,
+              nodeName,
+              nodeConfigs
+            );
+            result.items.push(...items);
+          }
+        }
+      }
     }
     return result;
   }
 
   async doCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
     switch (item.data) {
-      case CompletionDataKind.BuiltInNode:
+      case CompletionItemData.BuiltInNode:
         item.detail = "Built-in node";
         break;
-      case CompletionDataKind.BuiltInType:
+      case CompletionItemData.BuiltInType:
         item.detail = "Built-in node type";
         break;
-      case CompletionDataKind.BuiltInConfig:
+      case CompletionItemData.BuiltInConfig:
         item.detail = "Built-in node config";
         break;
-      case CompletionDataKind.CustomFolderName:
+      case CompletionItemData.CustomFolderName:
         item.detail = "Custom nodes folder name";
         break;
-      case CompletionDataKind.CustomNode:
+      case CompletionItemData.CustomNode:
         item.detail = "Custom node";
         break;
-      case CompletionDataKind.CustomType:
+      case CompletionItemData.CustomType:
         item.detail = "Custom node type";
         break;
-      case CompletionDataKind.CustomConfig:
+      case CompletionItemData.CustomConfig:
         item.detail = "Custom node config";
         break;
       /* istanbul ignore next */
@@ -241,19 +275,166 @@ export class PkdCompletion {
     return item;
   }
 
+  private getFolderNameCompletionItem(): CompletionItem {
+    return {
+      label: this.schemaService.schemaConfigs.custom.name,
+      kind: CompletionItemKind.Module,
+      data: CompletionItemData.CustomFolderName,
+    };
+  }
+
+  /**
+   *  Creates an array of node config completion items.
+   *
+   * @param schemaType Type of schema: builtIn or custom.
+   * @param nodeType Type of node.
+   * @param nodeName Name of node.
+   * @param presentConfigs The node configs which has already been typed by the
+   *                       user.
+   * @returns An array of CompletionItem containing node configs.
+   */
+  private getNodeConfigCompletionItems(
+    schemaType: string,
+    nodeType: string,
+    nodeName: string,
+    presentConfigs: string[]
+  ): CompletionItem[] {
+    type SchemaType = keyof typeof this.schemaService.schemaConfigs;
+    const schemaTypeKey = schemaType as SchemaType;
+    const items: CompletionItem[] = [];
+    this.schemaService.schemaConfigs[schemaTypeKey].schema
+      .get(nodeType)
+      ?.get(nodeName)
+      ?.configs.forEach((config) => {
+        if (!presentConfigs.includes(config)) {
+          items.push({
+            label: config,
+            kind: CompletionItemKind.Class,
+            data:
+              schemaType === "builtIn"
+                ? CompletionItemData.BuiltInConfig
+                : CompletionItemData.CustomConfig,
+          });
+        }
+      });
+    return items;
+  }
+
+  /**
+   * Creates a completion item containing a snippet of all of the node configs.
+   *
+   * @param schemaType Type of schema: builtIn or custom.
+   * @param nodeType Type of node.
+   * @param nodeName Name of node.
+   * @param prefix The string to be prepended to each config entry when forming
+   *               the snippet.
+   * @param suffix The string to be appended to each config entry when forming
+   *               the snippet.
+   * @returns A tuple containing a boolean flag and a CompletionItem. If flag
+   *          is true, the completion item contains a snippet of all of the
+   *          node configs. If false, the completion item is empty.
+   */
+  private getNodeConfigSnippet(
+    schemaType: string,
+    nodeType: string,
+    nodeName: string,
+    prefix: string,
+    suffix: string
+  ): [boolean, CompletionItem] {
+    type SchemaType = keyof typeof this.schemaService.schemaConfigs;
+    const schemaTypeKey = schemaType as SchemaType;
+    const configs = this.schemaService.schemaConfigs[schemaTypeKey].schema
+      .get(nodeType)
+      ?.get(nodeName)?.configs;
+    if (configs !== undefined && configs.length > 0) {
+      const completionText = prefix + configs.join(suffix + prefix) + suffix;
+      return [
+        true,
+        {
+          label: "Configuration options",
+          kind: CompletionItemKind.TypeParameter,
+          data:
+            schemaType === "builtIn"
+              ? CompletionItemData.BuiltInConfig
+              : CompletionItemData.CustomConfig,
+          insertTextMode: InsertTextMode.asIs,
+          insertText: completionText,
+        },
+      ];
+    } else {
+      return [false, {} as CompletionItem];
+    }
+  }
+
+  /**
+   *  Creates an array of node name completion items.
+   *
+   * @param schemaType Type of schema: builtIn or custom.
+   * @param nodeType Type of node.
+   * @returns An array of CompletionItem containing either built-in or custom
+   *          node names.
+   */
+  private getNodeNameCompletionItems(
+    schemaType: string,
+    nodeType: string
+  ): CompletionItem[] {
+    type SchemaType = keyof typeof this.schemaService.schemaConfigs;
+    const schemaTypeKey = schemaType as SchemaType;
+    const items: CompletionItem[] = [];
+    this.schemaService.schemaConfigs[schemaTypeKey].schema
+      .get(nodeType)
+      ?.forEach((_value, key) => {
+        items.push({
+          label: key,
+          kind: CompletionItemKind.Class,
+          data:
+            schemaType === "builtIn"
+              ? CompletionItemData.BuiltInNode
+              : CompletionItemData.CustomNode,
+        });
+      });
+    return items;
+  }
+
+  /**
+   *  Creates an array of node type completion items.
+   *
+   * @param schemaType Type of schema: builtIn or custom.
+   * @returns An array of CompletionItem containing either built-in or custom
+   *          node types.
+   */
+  private getNodeTypeCompletionItems(schemaType: string): CompletionItem[] {
+    type SchemaType = keyof typeof this.schemaService.schemaConfigs;
+    const schemaTypeKey = schemaType as SchemaType;
+    const items = [];
+    for (const key of this.schemaService.schemaConfigs[
+      schemaTypeKey
+    ].schema.keys()) {
+      items.push({
+        label: key,
+        kind: CompletionItemKind.TypeParameter,
+        data:
+          schemaType === "builtIn"
+            ? CompletionItemData.BuiltInType
+            : CompletionItemData.CustomType,
+      });
+    }
+    return items;
+  }
+
   /**
    * Returns the character before the completion trigger character.
    *
    * @param textDocument Currently open text document.
-   * @param completionParams Auto-completion parameters containing current
+   * @param params Auto-completion parameters containing current
    *                         cursor location.
    * @returns The character before the trigger character.
    */
   private getPrecedingChar(
     textDocument: TextDocument,
-    completionParams: CompletionParams
+    params: CompletionParams
   ): string {
-    const position = completionParams.position;
+    const position = params.position;
     return textDocument.getText({
       start: { line: position.line, character: position.character - 2 },
       end: { line: position.line, character: position.character - 1 },
@@ -265,17 +446,17 @@ export class PkdCompletion {
    * the leading whitespaces.
    *
    * @param textDocument Currently open text document.
-   * @param completionParams Auto-completion parameters containing current
+   * @param params Auto-completion parameters containing current
    *                         cursor location.
    * @param trim Flag to determine if the whitespaces should be removed.
    * @returns The line before the trigger character.
    */
   private getPrecedingText(
     textDocument: TextDocument,
-    completionParams: CompletionParams,
+    params: CompletionParams,
     trim = true
   ): string {
-    const position = completionParams.position;
+    const position = params.position;
     const precedingText = textDocument.getText({
       start: { line: position.line, character: 0 },
       end: { line: position.line, character: position.character - 1 },
