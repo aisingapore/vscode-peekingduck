@@ -24,7 +24,7 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { LanguageSettings } from "../src/language_service/pkd_language_service";
 import {
-  CompletionDataKind,
+  CompletionItemData,
   PkdCompletion,
 } from "../src/language_service/services/pkd_completion";
 import { PkdSchemaService } from "../src/language_service/services/pkd_schema_service";
@@ -253,7 +253,7 @@ describe("PKD Completion", () => {
     const expected = {
       label: "Configuration options",
       kind: CompletionItemKind.TypeParameter,
-      data: CompletionDataKind.BuiltInConfig,
+      data: CompletionItemData.BuiltInConfig,
       insertTextMode: InsertTextMode.asIs,
       insertText:
         prefix +
@@ -282,7 +282,7 @@ describe("PKD Completion", () => {
     const expected = {
       label: "Configuration options",
       kind: CompletionItemKind.TypeParameter,
-      data: CompletionDataKind.CustomConfig,
+      data: CompletionItemData.CustomConfig,
       insertTextMode: InsertTextMode.asIs,
       insertText: prefix + ["model_conf_1"].join(suffix + prefix) + suffix,
     };

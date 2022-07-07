@@ -15,25 +15,25 @@
 
 import { CompletionItemKind } from "vscode-languageserver";
 import { createExpectedError, getPath } from "./helper";
-import { CompletionDataKind } from "../../src/language_service/services/pkd_completion";
+import { CompletionItemData } from "../../src/language_service/services/pkd_completion";
 
 export const id = "peekingduck";
 
 const builtInNode = {
   kind: CompletionItemKind.Class,
-  data: CompletionDataKind.BuiltInNode,
+  data: CompletionItemData.BuiltInNode,
 };
 const builtInType = {
   kind: CompletionItemKind.TypeParameter,
-  data: CompletionDataKind.BuiltInType,
+  data: CompletionItemData.BuiltInType,
 };
 const customNode = {
   kind: CompletionItemKind.Class,
-  data: CompletionDataKind.CustomNode,
+  data: CompletionItemData.CustomNode,
 };
 const customType = {
   kind: CompletionItemKind.TypeParameter,
-  data: CompletionDataKind.CustomType,
+  data: CompletionItemData.CustomType,
 };
 
 export const completions = {
@@ -56,7 +56,7 @@ export const completions = {
     folder: {
       label: "custom_nodes",
       kind: CompletionItemKind.Module,
-      data: CompletionDataKind.CustomFolderName,
+      data: CompletionItemData.CustomFolderName,
     },
     name: {
       dabble: {
