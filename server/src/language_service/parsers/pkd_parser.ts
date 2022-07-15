@@ -16,7 +16,6 @@
 import * as yaml from "yaml";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { ParsedItem, Range } from "../pkd_types";
-import { integer } from "vscode-languageserver";
 
 /**
  * A parsed pipeline entry, can one of the following three types:
@@ -90,7 +89,7 @@ export class PkdParser {
   parseNodeDefMap(
     textDocument: TextDocument,
     omitLine: number
-  ): Map<integer, NodeEntry> {
+  ): Map<number, NodeEntry> {
     const nodeDefMap = new Map();
     const pipeline = this.parse(textDocument, omitLine);
     pipeline.nodes.forEach((entry: NodeEntry) => {
