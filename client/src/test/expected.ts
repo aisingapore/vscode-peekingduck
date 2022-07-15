@@ -23,9 +23,20 @@ const builtInNode = { kind: CompletionItemKind.Class, data: 1 };
 const builtInType = { kind: CompletionItemKind.TypeParameter, data: 0 };
 const customNode = { kind: CompletionItemKind.Class, data: 5 };
 const customType = { kind: CompletionItemKind.TypeParameter, data: 4 };
+const builtInConfig = { kind: CompletionItemKind.Class, data: 2 };
+const customConfig = { kind: CompletionItemKind.Class, data: 6 };
 
 export const completions = {
   builtIn: {
+    config: {
+      dabble: {
+        bboxCount: {
+          dampenFps: { label: "dampen_fps", ...builtInConfig },
+          fpsLogDisplay: { label: "fps_log_display", ...builtInConfig },
+          fpsLogFreq: { label: "fps_log_freq", ...builtInConfig },
+        },
+      },
+    },
     name: {
       dabble: {
         bboxCount: { label: "bbox_count", ...builtInNode },
@@ -41,6 +52,13 @@ export const completions = {
     },
   },
   custom: {
+    config: {
+      model: {
+        myModelNode: {
+          modelConf1: { label: "model_conf_1", ...customConfig },
+        },
+      },
+    },
     folder: { label: "custom_nodes", kind: CompletionItemKind.Module, data: 3 },
     name: {
       dabble: {

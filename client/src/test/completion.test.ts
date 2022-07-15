@@ -210,7 +210,7 @@ describe("E2E completion", () => {
 
   describe("Invoked completion", () => {
     const docUri = files.invokedCompletion;
-    it("should provide built-in node name completion on letter", async () => {
+    it("should provide built-in node name completion", async () => {
       await activate(docUri);
       await configure(true, true);
 
@@ -219,6 +219,76 @@ describe("E2E completion", () => {
           completions.builtIn.name.dabble.bboxCount,
           completions.builtIn.name.dabble.fps,
         ],
+      });
+    });
+
+    it("should provide custom node type completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(4, 19), null, {
+        items: [
+          completions.custom.type.model,
+          completions.custom.type.myDabble,
+        ],
+      });
+    });
+
+    it("should provide custom node name completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(6, 25), null, {
+        items: [
+          completions.custom.name.model.myModelNode,
+          completions.custom.name.model.yolo,
+        ],
+      });
+    });
+
+    it("should provide built-in node configs completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(9, 8), null, {
+        items: [
+          completions.builtIn.config.dabble.bboxCount.dampenFps,
+          completions.builtIn.config.dabble.bboxCount.fpsLogDisplay,
+          completions.builtIn.config.dabble.bboxCount.fpsLogFreq,
+        ],
+      });
+    });
+
+    it("should provide custom node configs completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(12, 8), null, {
+        items: [completions.custom.config.model.myModelNode.modelConf1],
+      });
+    });
+
+    it("should not provide completions for invalid custom node folder, node types, and node names", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(14, 14), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(16, 13), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(18, 25), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(21, 8), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(24, 8), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(26, 23), null, {
+        items: [],
       });
     });
   });
