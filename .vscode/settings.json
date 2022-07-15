@@ -4,5 +4,13 @@
   "typescript.preferences.quoteStyle": "single",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
+  },
+  "[peekingduck]": {
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.suggest.showWords": false
   }
 }
