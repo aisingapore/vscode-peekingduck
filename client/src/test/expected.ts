@@ -65,6 +65,7 @@ export const pipelineFiles = {
   good: getDocUri("./pipelines/good_pipeline.yml"),
   invalid: getDocUri("./pipelines/invalid_pipeline.yml"),
   invalidConfigKey: getDocUri("./pipelines/invalid_config_key_pipeline.yml"),
+  invokedCompletion: getDocUri("./pipelines/invoked_completion_pipeline.yml"),
   missingNodesKey: getDocUri("./pipelines/missing_nodes_key_pipeline.yml"),
   multipleNodeEntry: getDocUri("./pipelines/multiple_node_entry_pipeline.yml"),
   multipleTopKeys: getDocUri("./pipelines/multiple_top_keys_pipeline.yml"),
