@@ -1,0 +1,27 @@
+nodes:
+  # built-in node name
+  - dabble.bb
+  # custom node type
+  - custom_nodes.mo
+  # custom node name
+  - custom_nodes.model.my
+  # built-in configs
+  - dabble.fps:
+      fp
+  # custom configs
+  - custom_nodes.model.my_model_node:
+      mo
+  # invalid built-in node name
+  - augment.br
+  # invalid custom node type
+  - custom.au
+  # invalid custom node name
+  - custom_nodes.input.vi
+  # invalid built-in configs
+  - augment.brightness:
+      be
+  # invalid custom configs
+  - custom_nodes.input.visual:
+      so
+  # invalid custom folder name
+  - custom.my_dabble.my

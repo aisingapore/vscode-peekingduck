@@ -34,5 +34,5 @@
     "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$",
     "decreaseIndentPattern": "^\\s+\\}$"
   },
-  "wordPattern": "^[\\w\\d_]+"
+  "wordPattern": "(^.?[^\\s]+)+|([^\\s\\.\n={[][\\w\\-/$%&*\"']+)"
 }

@@ -23,9 +23,20 @@ const builtInNode = { kind: CompletionItemKind.Class, data: 1 };
 const builtInType = { kind: CompletionItemKind.TypeParameter, data: 0 };
 const customNode = { kind: CompletionItemKind.Class, data: 5 };
 const customType = { kind: CompletionItemKind.TypeParameter, data: 4 };
+const builtInConfig = { kind: CompletionItemKind.Class, data: 2 };
+const customConfig = { kind: CompletionItemKind.Class, data: 6 };
 
 export const completions = {
   builtIn: {
+    config: {
+      dabble: {
+        bboxCount: {
+          dampenFps: { label: "dampen_fps", ...builtInConfig },
+          fpsLogDisplay: { label: "fps_log_display", ...builtInConfig },
+          fpsLogFreq: { label: "fps_log_freq", ...builtInConfig },
+        },
+      },
+    },
     name: {
       dabble: {
         bboxCount: { label: "bbox_count", ...builtInNode },
@@ -41,6 +52,13 @@ export const completions = {
     },
   },
   custom: {
+    config: {
+      model: {
+        myModelNode: {
+          modelConf1: { label: "model_conf_1", ...customConfig },
+        },
+      },
+    },
     folder: { label: "custom_nodes", kind: CompletionItemKind.Module, data: 3 },
     name: {
       dabble: {
@@ -65,6 +83,7 @@ export const pipelineFiles = {
   good: getDocUri("./pipelines/good_pipeline.yml"),
   invalid: getDocUri("./pipelines/invalid_pipeline.yml"),
   invalidConfigKey: getDocUri("./pipelines/invalid_config_key_pipeline.yml"),
+  invokedCompletion: getDocUri("./pipelines/invoked_completion_pipeline.yml"),
   missingNodesKey: getDocUri("./pipelines/missing_nodes_key_pipeline.yml"),
   multipleNodeEntry: getDocUri("./pipelines/multiple_node_entry_pipeline.yml"),
   multipleTopKeys: getDocUri("./pipelines/multiple_top_keys_pipeline.yml"),

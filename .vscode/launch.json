@@ -3,16 +3,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Client",
       "type": "extensionHost",
       "request": "launch",
-      "name": "Launch Client",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
       "outFiles": ["${workspaceRoot}/client/out/**/*.js"],
-      "preLaunchTask": {
-        "type": "npm",
-        "script": "watch"
-      }
+      "preLaunchTask": "compile typescript"
     },
     {
       "type": "node",

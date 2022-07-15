@@ -21,201 +21,309 @@ import { activate, configure } from "./helper";
 const expect = chai.expect;
 
 describe("E2E completion", () => {
-  const docUri = files.completion;
+  describe("Trigger character completion", () => {
+    const docUri = files.completion;
+    it("should provide custom folder and built-in node type completions on space", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-  it("should provide custom folder and built-in node type completions on space", async () => {
-    await activate(docUri);
-    await configure(true, true);
+      await testCompletion(docUri, new vscode.Position(2, 4), " ", {
+        items: [
+          completions.custom.folder,
+          completions.builtIn.type.dabble,
+          completions.builtIn.type.model,
+        ],
+      });
+    });
 
-    await testCompletion(docUri, new vscode.Position(2, 4), " ", {
-      items: [
-        completions.custom.folder,
-        completions.builtIn.type.dabble,
-        completions.builtIn.type.model,
-      ],
+    it("should provide only custom folder completions on space", async () => {
+      await activate(docUri);
+      await configure(false, true);
+
+      await testCompletion(docUri, new vscode.Position(2, 4), " ", {
+        items: [completions.custom.folder],
+      });
+    });
+
+    it("should provide only built-in node type completions on space", async () => {
+      await activate(docUri);
+      await configure(true, false);
+
+      await testCompletion(docUri, new vscode.Position(2, 4), " ", {
+        items: [
+          completions.builtIn.type.dabble,
+          completions.builtIn.type.model,
+        ],
+      });
+    });
+
+    it("should provide built-in node name completion on period", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(4, 11), ".", {
+        items: [
+          completions.builtIn.name.dabble.bboxCount,
+          completions.builtIn.name.dabble.fps,
+        ],
+      });
+    });
+
+    it("should provide custom node type completion on period", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(6, 17), ".", {
+        items: [
+          completions.custom.type.model,
+          completions.custom.type.myDabble,
+        ],
+      });
+    });
+
+    it("should provide custom node name completion on period", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(8, 23), ".", {
+        items: [
+          completions.custom.name.model.myModelNode,
+          completions.custom.name.model.yolo,
+        ],
+      });
+    });
+
+    it("should provide built-in node configs completion on colon", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      const prefix = "\n      ";
+      const suffix = ":";
+      // data and insertTextMode are missing in vscode's CompletionItem definition
+      await testCompletion(docUri, new vscode.Position(10, 15), ":", {
+        items: [
+          {
+            label: "Configuration options",
+            kind: vscode.CompletionItemKind.TypeParameter,
+            insertText:
+              prefix +
+              ["fps_log_display", "fps_log_freq", "dampen_fps"].join(
+                suffix + prefix
+              ) +
+              suffix,
+          },
+        ],
+      });
+    });
+
+    it("should provide custom node configs completion on colon", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      const prefix = "\n      ";
+      const suffix = ":";
+      // data and insertTextMode are missing in vscode's CompletionItem definition
+      await testCompletion(docUri, new vscode.Position(12, 37), ":", {
+        items: [
+          {
+            label: "Configuration options",
+            kind: vscode.CompletionItemKind.TypeParameter,
+            insertText:
+              prefix + ["model_conf_1"].join(suffix + prefix) + suffix,
+          },
+        ],
+      });
+    });
+
+    it("should not provide completions for invalid custom node folder, node types, and node names", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(14, 12), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(16, 11), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(18, 23), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(20, 23), ":", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(22, 30), ":", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(24, 21), ".", {
+        items: [],
+      });
+    });
+
+    it("should not provide built-in completions when disabled", async () => {
+      await activate(docUri);
+      await configure(false, true);
+
+      await testCompletion(docUri, new vscode.Position(2, 4), " ", {
+        items: [completions.custom.folder],
+      });
+      await testCompletion(docUri, new vscode.Position(4, 11), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(10, 15), ":", {
+        items: [],
+      });
+    });
+
+    it("should not provide custom completions when disabled", async () => {
+      await activate(docUri);
+      await configure(true, false);
+
+      await testCompletion(docUri, new vscode.Position(2, 4), " ", {
+        items: [
+          completions.builtIn.type.dabble,
+          completions.builtIn.type.model,
+        ],
+      });
+      await testCompletion(docUri, new vscode.Position(8, 23), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(12, 37), ":", {
+        items: [],
+      });
+    });
+
+    it("should not provide completion if not a node entry", async () => {
+      await activate(docUri);
+      await configure(true, true);
+
+      await testCompletion(docUri, new vscode.Position(0, 6), " ", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(0, 6), ".", {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(0, 6), ":", {
+        items: [],
+      });
     });
   });
 
-  it("should provide only custom folder completions on space", async () => {
-    await activate(docUri);
-    await configure(false, true);
+  describe("Invoked completion", () => {
+    const docUri = files.invokedCompletion;
+    it("should provide built-in node name completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    await testCompletion(docUri, new vscode.Position(2, 4), " ", {
-      items: [completions.custom.folder],
+      await testCompletion(docUri, new vscode.Position(2, 13), null, {
+        items: [
+          completions.builtIn.name.dabble.bboxCount,
+          completions.builtIn.name.dabble.fps,
+        ],
+      });
     });
-  });
 
-  it("should provide only built-in node type completions on space", async () => {
-    await activate(docUri);
-    await configure(true, false);
+    it("should provide custom node type completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    await testCompletion(docUri, new vscode.Position(2, 4), " ", {
-      items: [completions.builtIn.type.dabble, completions.builtIn.type.model],
+      await testCompletion(docUri, new vscode.Position(4, 19), null, {
+        items: [
+          completions.custom.type.model,
+          completions.custom.type.myDabble,
+        ],
+      });
     });
-  });
 
-  it("should provide built-in node name completion on period", async () => {
-    await activate(docUri);
-    await configure(true, true);
+    it("should provide custom node name completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    await testCompletion(docUri, new vscode.Position(4, 11), ".", {
-      items: [
-        completions.builtIn.name.dabble.bboxCount,
-        completions.builtIn.name.dabble.fps,
-      ],
+      await testCompletion(docUri, new vscode.Position(6, 25), null, {
+        items: [
+          completions.custom.name.model.myModelNode,
+          completions.custom.name.model.yolo,
+        ],
+      });
     });
-  });
 
-  it("should provide custom node type completion on period", async () => {
-    await activate(docUri);
-    await configure(true, true);
+    it("should provide built-in node configs completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    await testCompletion(docUri, new vscode.Position(6, 17), ".", {
-      items: [completions.custom.type.model, completions.custom.type.myDabble],
+      await testCompletion(docUri, new vscode.Position(9, 8), null, {
+        items: [
+          completions.builtIn.config.dabble.bboxCount.dampenFps,
+          completions.builtIn.config.dabble.bboxCount.fpsLogDisplay,
+          completions.builtIn.config.dabble.bboxCount.fpsLogFreq,
+        ],
+      });
     });
-  });
 
-  it("should provide custom node name completion on period", async () => {
-    await activate(docUri);
-    await configure(true, true);
+    it("should provide custom node configs completion", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    await testCompletion(docUri, new vscode.Position(8, 23), ".", {
-      items: [
-        completions.custom.name.model.myModelNode,
-        completions.custom.name.model.yolo,
-      ],
+      await testCompletion(docUri, new vscode.Position(12, 8), null, {
+        items: [completions.custom.config.model.myModelNode.modelConf1],
+      });
     });
-  });
 
-  it("should provide built-in node configs completion on colon", async () => {
-    await activate(docUri);
-    await configure(true, true);
+    it("should not provide completions for invalid custom node folder, node types, and node names", async () => {
+      await activate(docUri);
+      await configure(true, true);
 
-    const prefix = "\n      ";
-    const suffix = ":";
-    // data and insertTextMode are missing in vscode's CompletionItem definition
-    await testCompletion(docUri, new vscode.Position(10, 15), ":", {
-      items: [
-        {
-          label: "Configuration options",
-          kind: vscode.CompletionItemKind.TypeParameter,
-          insertText:
-            prefix +
-            ["fps_log_display", "fps_log_freq", "dampen_fps"].join(
-              suffix + prefix
-            ) +
-            suffix,
-        },
-      ],
-    });
-  });
-
-  it("should provide custom node configs completion on colon", async () => {
-    await activate(docUri);
-    await configure(true, true);
-
-    const prefix = "\n      ";
-    const suffix = ":";
-    // data and insertTextMode are missing in vscode's CompletionItem definition
-    await testCompletion(docUri, new vscode.Position(12, 37), ":", {
-      items: [
-        {
-          label: "Configuration options",
-          kind: vscode.CompletionItemKind.TypeParameter,
-          insertText: prefix + ["model_conf_1"].join(suffix + prefix) + suffix,
-        },
-      ],
-    });
-  });
-
-  it("should not provide completions for invalid custom node folder, node types, and node names", async () => {
-    await activate(docUri);
-    await configure(true, true);
-
-    await testCompletion(docUri, new vscode.Position(14, 12), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(16, 11), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(18, 23), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(20, 23), ":", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(22, 30), ":", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(24, 21), ".", {
-      items: [],
-    });
-  });
-
-  it("should not provide built-in completions when disabled", async () => {
-    await activate(docUri);
-    await configure(false, true);
-
-    await testCompletion(docUri, new vscode.Position(2, 4), " ", {
-      items: [completions.custom.folder],
-    });
-    await testCompletion(docUri, new vscode.Position(4, 11), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(10, 15), ":", {
-      items: [],
-    });
-  });
-
-  it("should not provide custom completions when disabled", async () => {
-    await activate(docUri);
-    await configure(true, false);
-
-    await testCompletion(docUri, new vscode.Position(2, 4), " ", {
-      items: [completions.builtIn.type.dabble, completions.builtIn.type.model],
-    });
-    await testCompletion(docUri, new vscode.Position(8, 23), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(12, 37), ":", {
-      items: [],
-    });
-  });
-
-  it("should not provide completion if not a node entry", async () => {
-    await activate(docUri);
-    await configure(true, true);
-
-    await testCompletion(docUri, new vscode.Position(0, 6), " ", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(0, 6), ".", {
-      items: [],
-    });
-    await testCompletion(docUri, new vscode.Position(0, 6), ":", {
-      items: [],
+      await testCompletion(docUri, new vscode.Position(14, 14), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(16, 13), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(18, 25), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(21, 8), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(24, 8), null, {
+        items: [],
+      });
+      await testCompletion(docUri, new vscode.Position(26, 23), null, {
+        items: [],
+      });
     });
   });
 });
 
+/**
+ *
+ * @param docUri Document URI of the pipeline file.
+ * @param position Cursor position.
+ * @param triggerCharacter Null to simulate invoked completion. A char to
+ *                         simulate "trigger character" completion.
+ * @param expectedCompletionList Expect list of completion items.
+ */
 async function testCompletion(
   docUri: vscode.Uri,
   position: vscode.Position,
-  triggerCharacter: string,
+  triggerCharacter: string | null,
   expectedCompletionList: vscode.CompletionList
 ) {
   // Executing the command `vscode.executeCompletionItemProvider` to
   // simulate triggering completion
+  const commandArgs: any[] = [docUri, position];
+  if (triggerCharacter !== null) commandArgs.push(triggerCharacter);
   const actualCompletionList = (await vscode.commands.executeCommand(
     "vscode.executeCompletionItemProvider",
-    docUri,
-    position,
-    triggerCharacter
+    ...commandArgs
   )) as vscode.CompletionList;
+
   // The API somehow returns a "nodes" completion item which is missing when
   // manually testing the extension. We filter it out here.
+  // TODO: set up editor defaultConfigurations instead of filtering them here
   const actualItems = actualCompletionList.items.filter((item) => {
-    return item.label !== "nodes";
+    return (
+      item.label !== "nodes" && item.kind !== vscode.CompletionItemKind.Text
+    );
   });
 
   expect(actualItems.length).to.be.equal(expectedCompletionList.items.length);
