@@ -4,7 +4,7 @@
   "description": "PeekingDuck pipeline language support for VS Code.",
   "publisher": "aisingapore",
   "license": "Apache-2.0",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.67.0"
   },
