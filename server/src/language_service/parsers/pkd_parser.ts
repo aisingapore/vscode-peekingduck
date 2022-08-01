@@ -165,7 +165,7 @@ export class PkdParser {
     let text = textDocument.getText();
     if (line > -1) {
       const start = textDocument.offsetAt({ line, character: 0 });
-      const end = textDocument.offsetAt({ line: line + 1, character: 0 }) - 1;
+      const end = textDocument.offsetAt({ line, character: Infinity });
       text =
         text.substring(0, start) +
         " ".repeat(end - start) +
