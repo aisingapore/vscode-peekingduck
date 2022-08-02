@@ -57,9 +57,7 @@ repository:
                 | : \S
                 | \s+ (?![#\s])
               )*
-              \s*
-              :
-              (\s|$)
+              \s* : (\s|$)
             )
         end: >
           (?x)
@@ -70,22 +68,6 @@ repository:
             )
         patterns:
           - include: "#flow-scalar-plain-out-implicit-type"
-          - match: (augment|dabble|draw|input|model|output)(\.)[\w\d]+
-            captures:
-              "1":
-                name: storage.type.node.peekingduck
-              "2":
-                name: punctuation.separator.node-name
-          - match: ([\w\d]+)(\.)(augment|dabble|draw|input|model|output)(\.)[\w\d]+
-            captures:
-              "1":
-                name: entity.name.namespace.peekingduck-custom
-              "2":
-                name: punctuation.separator.node-name
-              "3":
-                name: storage.type.node.peekingduck-custom
-              "4":
-                name: punctuation.separator.node-name
           - begin: >
               (?x)
                   [^\s[-?:,\[\]{}#&*!|>'\"%@`]]
@@ -401,22 +383,31 @@ repository:
   flow-scalar-plain-out:
     patterns:
       - include: "#flow-scalar-plain-out-implicit-type"
-      - match: (augment|dabble|draw|input|model|output)(\.)[\w\d]+
-        captures:
-          "1":
-            name: storage.type.node.peekingduck
-          "2":
-            name: punctuation.separator.node-name
-      - match: ([\w\d]+)(\.)(augment|dabble|draw|input|model|output)(\.)[\w\d]+
-        captures:
-          "1":
-            name: entity.name.namespace.peekingduck-custom
-          "2":
-            name: punctuation.separator.node-name
-          "3":
-            name: storage.type.node.peekingduck-custom
-          "4":
-            name: punctuation.separator.node-name
+      - begin: (?<=^\s*-)
+        end: >
+          (?x)
+            (?=
+                \s* $
+              | \s+ \#
+              | \s* : (\s|$)
+            )
+        patterns:
+          - match: (augment|dabble|draw|input|model|output)(\.)[\w\d]+
+            captures:
+              "1":
+                name: storage.type.node.peekingduck
+              "2":
+                name: punctuation.separator.node-name
+          - match: ([\w\d]+)(\.)(augment|dabble|draw|input|model|output)(\.)[\w\d]+
+            captures:
+              "1":
+                name: entity.name.namespace.peekingduck-custom
+              "2":
+                name: punctuation.separator.node-name
+              "3":
+                name: storage.type.node.peekingduck-custom
+              "4":
+                name: punctuation.separator.node-name
       - begin: >
           (?x)
               [^\s[-?:,\[\]{}#&*!|>'"%@`]]
